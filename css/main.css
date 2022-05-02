@@ -125,6 +125,20 @@ html, body {
   font-size: 30px;
 }
 
+.survey_songs::before {
+  content: "Choose songs starting from the one you like most:";
+}
+
+.survey_songs {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+}
+
 .survey_sex_age {
   display: -webkit-box;
   display: -ms-flexbox;
@@ -143,10 +157,13 @@ html, body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  -ms-flex-item-align: center;
+      align-self: center;
+  padding-top: 10px;
 }
 
 .song[data-descr]::before {
   content: attr(data-descr);
-  width: 20%;
+  width: 20px;
 }
 /*# sourceMappingURL=main.css.map */

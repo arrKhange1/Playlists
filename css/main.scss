@@ -102,6 +102,15 @@ html,body {
     }
 }
 
+.survey_songs::before {
+    content: "Choose songs starting from the one you like most:";
+}
+
+.survey_songs {
+    display: flex;
+    flex-direction: column;
+}
+
 .survey_sex_age {
     display: flex;
     
@@ -116,9 +125,11 @@ html,body {
 
 .song {
     display: flex;
+    align-self: center;
+    padding-top: 10px;
 }
 
 .song[data-descr]::before {
     content: attr(data-descr);
-    width: 20%;
+    width: 20px;
 }
