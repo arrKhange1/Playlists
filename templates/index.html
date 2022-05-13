@@ -1,0 +1,60 @@
+{%extends 'template.html'%}
+
+{%block title%}Survey{%endblock%}
+
+{%block content%}
+<div class="imgs_slider">
+    <img class="slider_elem" src="{{url_for('static', filename='imgs/survey_img_vinil.jpg' )}}" alt="">
+    <img class="slider_elem"  src="{{url_for('static', filename='imgs/survey_img_beachChill.png' )}}" alt="">
+    <img class="slider_elem"  src="{{url_for('static', filename='imgs/survey_img_manHeadphones.jpg' )}}" alt="">
+    <img class="slider_elem"  src="{{url_for('static', filename='/imgs/survey_img_club.jpg' )}}" alt="">
+</div>
+<div class="survey">
+    <form class="survey_container" method="post">
+        <div class="survey_title">Favorite Songs</div>
+        <div class="survey_email">
+            <label for="email">Enter e-mail here:</label>
+            <input type="email" name="email" id="email" placeholder="mailbox@gmail.com" required>
+        </div>
+        <div class="survey_sex_age">
+            <div class="survey_male">
+                <input type="radio" name="sex" value="M" id="M" checked>
+                <label for="M">Male</label>
+            </div>
+            <div class="survey_female">
+                <input type="radio" name="sex" value="F" id="F">
+                <label for="F">Female </label>
+            </div>
+            <div class="survey_age">
+                <label for="age_checker">Age:</label>
+                <input type="number" name="age" id="age_checker" min="16" max="100" size="3" required>
+            </div>
+        </div>
+        <div class="survey_songs">
+            <datalist id="cities">
+                <option value="Naples" />
+                <option value="London" />
+                <option value="Berlin" />
+                <option value="New York" />
+                <option value="Fraggiore" />
+            </datalist>
+            <div class="song" data-descr="1.">
+                <input name="song1" list="cities" required>
+            </div>
+            <div class="song" data-descr="2."">
+                <input name="song2" list="cities" required/>
+            </div>
+            <div class="song" data-descr="3.">
+                <input name="song3" list="cities" required/>
+            </div>
+            <div class="song" data-descr="4.">
+                <input name="song4" list="cities" required/>
+            </div>
+            <div class="song" data-descr="5.">
+                <input name="song5" list="cities" required/>
+            </div>
+        </div>
+        <input class="survey_submit" type="submit" value="Am Done!">              
+    </form>
+</div>
+{%endblock%}
