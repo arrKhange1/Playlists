@@ -51,7 +51,7 @@ def insert_survey_result(form):
         try:
 
             with connection.cursor() as cursor:
-                query = "SELECT `respondent_id` FROM `respondent` WHERE respondent_id=LAST_INSERT_ID()"
+                query = "SELECT * FROM `get_last_respondent_id`"
                 cursor.execute(query)
 
                 respondent_id = cursor.fetchall()[0]['respondent_id']
@@ -70,6 +70,9 @@ def insert_survey_result(form):
             print("survey_result Error")
     
 
+# def update_playlist(form):
+#     if ()
+
 app = Flask(__name__)
 
 
@@ -78,6 +81,8 @@ def index():
     songs = select_songs()
     if request.method == "POST" and request.form != []:
         insert_survey_result(request.form)
+        #update_playlist(request.form)
+
     return render_template("index.html", songs=songs)
 
 @app.route("/playlists_page")

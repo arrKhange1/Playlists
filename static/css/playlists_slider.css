@@ -1,0 +1,59 @@
+.playlists_nav {
+  margin: 0;
+  padding: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  text-align: justify;
+  margin-bottom: 20px;
+}
+
+.playlists_nav li {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 20%;
+          flex: 1 1 20%;
+  height: 100%;
+  border-right: 1px solid white;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  -webkit-transition: -webkit-box-flex 0.6s;
+  transition: -webkit-box-flex 0.6s;
+  transition: flex 0.6s;
+  transition: flex 0.6s, -webkit-box-flex 0.6s, -ms-flex 0.6s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.playlists_nav li .music {
+  position: absolute;
+  left: 0;
+  bottom: -100%;
+  width: 100%;
+  background: lightgray;
+}
+
+.playlists_nav li:last-child {
+  border: none;
+}
+
+.playlists_nav li:hover {
+  -webkit-box-flex: 1;
+      -ms-flex: 1 1 60%;
+          flex: 1 1 60%;
+}
+
+.playlists_nav li:hover .music {
+  bottom: 0;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+  -webkit-transition-delay: 0.4s;
+          transition-delay: 0.4s;
+}
+/*# sourceMappingURL=playlists_slider.css.map */
