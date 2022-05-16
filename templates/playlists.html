@@ -4,13 +4,15 @@
 
 {%block content%}
 <ul class="playlists_nav">
+    {%for playlist in playlists%}
     <li>
         <div class="music">
             <h2>Playlist1</h2>
 
         </div>
     </li>
-    <li>
+    {%endfor%}
+    <!-- <li>
         <div class="music">
             <h2>Playlist2</h2>
 
@@ -27,6 +29,6 @@
             <h2>Playlist4</h2>
 
         </div>
-    </li>
+    </li> -->
 </ul>
 {%endblock%}

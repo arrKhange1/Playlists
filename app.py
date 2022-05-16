@@ -70,8 +70,81 @@ def insert_survey_result(form):
             print("survey_result Error")
     
 
-# def update_playlist(form):
-#     if ()
+
+def update_playlist(form):
+    
+    with connection.cursor() as cursor:
+        if (form['sex'] == 'M'):
+
+            cursor.execute("SELECT * FROM get_male_playlist_id")
+            playlist_id = cursor.fetchall()[0]['playlist_id']
+            
+            try:
+
+                cursor.execute(f"DELETE FROM `playlist_inner` WHERE playlist_id = {playlist_id}")
+
+                cursor.execute("SELECT * FROM `songs_for_males_playlist`")
+                songs = cursor.fetchall()
+
+                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `song_id`) VALUES "
+                for song in songs:
+                    insert_query += f"({playlist_id}, {song['song_id']}),"
+                
+                cursor.execute(insert_query[:-1])
+                connection.commit()
+            except:
+                print("update_playlist Error")
+                connection.rollback()
+
+            print(songs)
+
+        elif (form['sex'] == 'F'):
+
+            cursor.execute("SELECT * FROM get_female_playlist_id")
+            playlist_id = cursor.fetchall()[0]['playlist_id']
+            
+            try:
+
+                cursor.execute(f"DELETE FROM `playlist_inner` WHERE playlist_id = {playlist_id}")
+
+                cursor.execute("SELECT * FROM `songs_for_females_playlist`")
+                songs = cursor.fetchall()
+
+                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `song_id`) VALUES "
+                for song in songs:
+                    insert_query += f"({playlist_id}, {song['song_id']}),"
+                
+                cursor.execute(insert_query[:-1])
+                connection.commit()
+            except:
+                print("update_playlist Error")
+                connection.rollback()
+            print(songs)
+        
+        if (int(form['age']) <= 21):
+
+            cursor.execute("SELECT * FROM get_youngsters_playlist_id")
+            playlist_id = cursor.fetchall()[0]['playlist_id']
+
+            try:
+
+                cursor.execute(f"DELETE FROM `playlist_inner` WHERE playlist_id = {playlist_id}")
+
+                cursor.execute("SELECT * FROM `songs_for_youngsters_playlist`")
+                songs = cursor.fetchall()
+
+                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `song_id`) VALUES "
+                for song in songs:
+                    insert_query += f"({playlist_id}, {song['song_id']}),"
+                
+                cursor.execute(insert_query[:-1])
+                connection.commit()
+            except:
+                print("update_playlist Error")
+                connection.rollback()
+            print(songs)
+    
+            
 
 app = Flask(__name__)
 
@@ -81,12 +154,13 @@ def index():
     songs = select_songs()
     if request.method == "POST" and request.form != []:
         insert_survey_result(request.form)
-        #update_playlist(request.form)
+        update_playlist(request.form)
 
     return render_template("index.html", songs=songs)
 
 @app.route("/playlists_page")
 def playlists():
+
     return render_template("playlists.html")
 
 
