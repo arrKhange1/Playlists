@@ -34,9 +34,22 @@
 .playlists_nav li .music {
   position: absolute;
   left: 0;
-  bottom: -100%;
+  bottom: 0;
   width: 100%;
   background: lightgray;
+}
+
+.playlists_nav li .music ul {
+  margin-bottom: 10px;
+  -webkit-transition: opacity 1s ease-out;
+  transition: opacity 1s ease-out;
+  opacity: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.playlists_nav li .music ul li {
+  border: none;
 }
 
 .playlists_nav li:last-child {
@@ -49,11 +62,8 @@
           flex: 1 1 60%;
 }
 
-.playlists_nav li:hover .music {
-  bottom: 0;
-  -webkit-transition: 0.5s;
-  transition: 0.5s;
-  -webkit-transition-delay: 0.4s;
-          transition-delay: 0.4s;
+.playlists_nav li:hover .music ul {
+  opacity: 1;
+  height: auto;
 }
 /*# sourceMappingURL=playlists_slider.css.map */

@@ -20,11 +20,27 @@
         overflow: hidden;
 
         .music {
+            
+
             position: absolute;
             left: 0;
-            bottom: -100%;
+            bottom: 0;
             width: 100%;
             background: lightgray;
+            
+            ul {
+                
+                margin-bottom: 10px;
+
+                transition: opacity 1s ease-out;
+                opacity: 0;
+                height: 0;
+                overflow: hidden;
+
+                li {
+                    border: none;
+                }
+            }
         }
     }
 
@@ -36,9 +52,12 @@
         flex: 1 1 60%;
         
         .music {
-            bottom: 0;
-            transition: 0.5s;
-            transition-delay: 0.4s;
+
+            ul {
+                opacity: 1;
+                height: auto;
+            }
+            
         }
     }
 

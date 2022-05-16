@@ -143,8 +143,26 @@ def update_playlist(form):
                 print("update_playlist Error")
                 connection.rollback()
             print(songs)
-    
-            
+
+
+def format_raw_playlists(raw_playlists):
+    ready_playlists = {}
+    for raw_playlist in raw_playlists:
+        if ready_playlists.get(raw_playlist['category_name']) is None:
+            ready_playlists[raw_playlist['category_name']] = [raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name']]
+        else:
+            ready_playlists[raw_playlist['category_name']].append(raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name'])
+    return ready_playlists       
+
+def get_ready_playlists():
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM `get_each_playlist`")
+        raw_playlists = cursor.fetchall()
+        print(raw_playlists)
+
+        return format_raw_playlists(raw_playlists)
+
+
 
 app = Flask(__name__)
 
@@ -160,8 +178,8 @@ def index():
 
 @app.route("/playlists_page")
 def playlists():
-
-    return render_template("playlists.html")
+    playlists = get_ready_playlists()
+    return render_template("playlists.html", playlists=playlists.items())
 
 
 if __name__ == "__main__":
