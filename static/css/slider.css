@@ -21,27 +21,27 @@
     40% { opacity:0 }
 }
 
-img {
+.slider_elem {
     border: 1px solid;
 }
 
-img:nth-child(1) {
+.slider_elem:nth-child(1) {
     border-radius: 30% 70% 30% 70% / 70% 30% 70% 30%;
 
     animation-delay: 13s
 }
-img:nth-child(2) {
+.slider_elem:nth-child(2) {
     border-radius: 70% 30% 70% 30% / 30% 70% 30% 70%;
 
     animation-delay: 9s
 }
-img:nth-child(3) {
+.slider_elem:nth-child(3) {
     border-radius: 30% 70% 30% 70% / 70% 30% 70% 30%;
 
     animation-delay: 5s
 }
 
-img:nth-child(4) {
+.slider_elem:nth-child(4) {
     border-radius: 70% 30% 70% 30% / 30% 70% 30% 70%;
 
     animation-delay: 1s

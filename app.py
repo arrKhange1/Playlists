@@ -1,5 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 
+import os
+
 import pymysql
 from db_config import host, user, password, db_name
 
@@ -148,19 +150,34 @@ def update_playlist(form):
 def format_raw_playlists(raw_playlists):
     ready_playlists = {}
     for raw_playlist in raw_playlists:
-        if ready_playlists.get(raw_playlist['category_name']) is None:
-            ready_playlists[raw_playlist['category_name']] = [raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name']]
+        if ready_playlists.get((raw_playlist['category_name'], raw_playlist['category_image'])) is None:
+            ready_playlists[(raw_playlist['category_name'], raw_playlist['category_image'])] = [raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name']]
         else:
-            ready_playlists[raw_playlist['category_name']].append(raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name'])
+            ready_playlists[(raw_playlist['category_name'], raw_playlist['category_image'])].append(raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name'])
+    print(ready_playlists)
     return ready_playlists       
+
+
+def write_to_file(data, filename):
+    
+    with open(filename, 'wb') as file:
+        file.write(data)
+    print("Данный из blob сохранены в: ", filename, "\n")
 
 def get_ready_playlists():
     with connection.cursor() as cursor:
         cursor.execute("SELECT * FROM `get_each_playlist`")
         raw_playlists = cursor.fetchall()
-        print(raw_playlists)
-
+        
+        for raw in raw_playlists:
+             photo_path = os.path.join("static\imgs\\", raw['category_name'] + ".jpg")
+             write_to_file(raw['category_image'], photo_path)
+             raw['category_image'] = photo_path
+        
+        
         return format_raw_playlists(raw_playlists)
+
+        
 
 
 

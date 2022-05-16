@@ -5,9 +5,10 @@
 {%block content%}
 <ul class="playlists_nav">
     {%for playlist in playlists%}
-    <li>
+    <li >
+        <img style="overflow: hidden; object-fit: cover;" src={{playlist[0][1]}} alt="">
         <div class="music">
-            <h2>{{playlist[0]}}</h2>
+            <h2>{{playlist[0][0]}}</h2>
             <ul>
                 {% for song in playlist[1] %}
                 <li>{{song}}</li>
