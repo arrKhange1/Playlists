@@ -31,28 +31,27 @@
             </div>
         </div>
         <div class="survey_songs">
-            <datalist id="cities">
-                <option value="Naples" />
-                <option value="London" />
-                <option value="Berlin" />
-                <option value="New York" />
-                <option value="Fraggiore" />
+            <datalist id="songs">
+                {% for song in songs %}
+                    <option value= "{{song.author_pseudo}} - {{song.song_name}}"></option>
+                {% endfor %}
             </datalist>
             <div class="song" data-descr="1.">
-                <input name="song1" list="cities" required>
+                <input name="song1" list="songs" required>
             </div>
             <div class="song" data-descr="2."">
-                <input name="song2" list="cities" required/>
+                <input name="song2" list="songs" required/>
             </div>
             <div class="song" data-descr="3.">
-                <input name="song3" list="cities" required/>
+                <input name="song3" list="songs" required/>
             </div>
             <div class="song" data-descr="4.">
-                <input name="song4" list="cities" required/>
+                <input name="song4" list="songs" required/>
             </div>
             <div class="song" data-descr="5.">
-                <input name="song5" list="cities" required/>
+                <input name="song5" list="songs" required/>
             </div>
+            
         </div>
         <input class="survey_submit" type="submit" value="Am Done!">              
     </form>

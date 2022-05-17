@@ -3,5 +3,19 @@
 {%block title%}Playlists{%endblock%}
 
 {%block content%}
-<div>Hello World!</div>
+<ul class="playlists_nav">
+    {%for playlist in playlists%}
+    <li >
+        <img style="overflow: hidden; object-fit: cover;" src={{playlist[0][1]}} alt="">
+        <div class="music">
+            <h2>{{playlist[0][0]}}</h2>
+            <ul>
+                {% for song in playlist[1] %}
+                <li>{{song}}</li>
+                {%endfor%}
+            </ul>
+        </div>
+    </li>
+    {%endfor%}
+
 {%endblock%}

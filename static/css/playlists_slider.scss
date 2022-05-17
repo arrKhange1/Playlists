@@ -1,0 +1,72 @@
+.playlists_nav {
+    margin: 0;
+    padding: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    text-align: justify;
+    margin-bottom: 20px;
+
+    li {
+        display: flex;
+        flex: 1 1 20%;
+        height: 100%;
+        clip-path: polygon(12% 0, 100% 0, 71% 100%, 0 99%);
+        border-right: 1px solid white;
+        box-sizing: border-box;
+        transition: flex 0.6s ;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+
+        .music {
+            
+
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background: lightgray;
+            
+            ul {
+                
+                margin-bottom: 10px;
+
+                transition: opacity 1s ease-out;
+                opacity: 0;
+                height: 0;
+                overflow: hidden;
+
+                li {
+                    border: none;
+                    clip-path: none;
+                    background: lightgray;
+                }
+            }
+        }
+    }
+
+    li:last-child {
+        border: none;
+    }
+
+    li:hover {
+        flex: 1 1 60%;
+        
+        .music {
+
+            ul {
+                opacity: 1;
+                height: auto;
+            }
+            
+        }
+    }
+
+}
+
+
+
+
+
