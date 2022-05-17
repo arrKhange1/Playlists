@@ -38,11 +38,20 @@
                 height: 0;
                 overflow: hidden;
 
-                li {
-                    border: none;
-                    clip-path: none;
-                    background: lightgray;
+                div {
+                    img {
+                        width: 30px;
+                    }
+                    display: flex;
+                    li {
+                        color: black;
+                        border: none;
+                        clip-path: none;
+                        background: lightgray;
+                    }
                 }
+
+                
             }
         }
     }

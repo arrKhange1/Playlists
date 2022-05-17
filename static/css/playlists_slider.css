@@ -50,7 +50,18 @@
   overflow: hidden;
 }
 
-.playlists_nav li .music ul li {
+.playlists_nav li .music ul div {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.playlists_nav li .music ul div img {
+  width: 30px;
+}
+
+.playlists_nav li .music ul div li {
+  color: black;
   border: none;
   -webkit-clip-path: none;
           clip-path: none;
