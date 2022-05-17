@@ -1,4 +1,3 @@
-from flask_sqlalchemy import SQLAlchemy
 
 import pymysql
 from db_config import host, user, password, db_name
