@@ -3,19 +3,27 @@
 {%block title%}Playlists{%endblock%}
 
 {%block content%}
-<ul class="playlists_nav">
-    {%for playlist in playlists%}
-    <li >
-        <img style="overflow: hidden; object-fit: cover;" src={{playlist[0][1]}} alt="">
-        <div class="music">
-            <h2>{{playlist[0][0]}}</h2>
-            <ul>
-                {% for song in playlist[1] %}
-                <li>{{song}}</li>
-                {%endfor%}
-            </ul>
-        </div>
-    </li>
-    {%endfor%}
+{%if playlists%}
+    <ul class="playlists_nav">
+        {%for playlist in playlists%}
+        <li >
+            <img style="overflow: hidden; object-fit: cover;" src={{playlist[0][1]}} alt="">
+            <div class="music">
+                <h2>{{playlist[0][0]}}</h2>
+                <ul>
+                    {% for song in playlist[1] %}
+                    <div>    
+                        <img src="/static/imgs/song_before.png" alt="">
+                        <li>{{song}}</li>
+                    </div>
+                    {%endfor%}
+                </ul>
+            </div>
+        </li>
+        {%endfor%}
+    </ul>
+{% else %}
+    <div class="playlists_empty">Ooops...</div>
+{%endif%}
 
 {%endblock%}
