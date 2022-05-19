@@ -25,7 +25,7 @@ except Exception as ex:
 def select_songs():
     result = ()
     with connection.cursor() as cursor:
-        query = "SELECT  `song_name`, `author_pseudo` FROM `song` JOIN `author` ON song.author_id = author.author_id"
+        query = "SELECT  `song_name`, `author_pseudo` FROM `song_author` JOIN `author` ON song_author.author_id = author.author_id JOIN `song` ON song_author.song_id = song.song_id"
         cursor.execute(query)
         result = cursor.fetchall()
     return result
@@ -56,14 +56,14 @@ def insert_survey_result(form):
                 cursor.execute(query)
 
                 respondent_id = cursor.fetchall()[0]['respondent_id']
-                insert_query = "INSERT INTO `survey_result` (`survey_id`, `song_id`, `respondent_id`) VALUES "
+                insert_query = "INSERT INTO `survey_result` (`survey_id`, `composition_id`, `respondent_id`) VALUES "
                 for i in range(5):
                     song_key_json = f'song{i+1}'
                     
-                    cursor.execute(f"SELECT `song_id` FROM `song` WHERE song_name = '{form[song_key_json].split('-')[1].strip()}'")
-                    song_id = cursor.fetchall()[0]['song_id']
+                    cursor.execute(f"SELECT `id` FROM `song_author` JOIN `song` ON song_author.song_id = song.song_id JOIN `author` ON song_author.author_id = author.author_id WHERE  song_name = '{form[song_key_json].split('-')[1].strip()}' AND author_pseudo = '{form[song_key_json].split('-')[0].strip()}' ")
+                    composition_id = cursor.fetchall()[0]['id']
 
-                    insert_query += f"(1, {song_id}, {respondent_id}),"
+                    insert_query += f"(1, {composition_id}, {respondent_id}),"
 
                 cursor.execute(insert_query[:-1])
                 connection.commit()
@@ -87,9 +87,9 @@ def update_playlist(form):
                 cursor.execute("SELECT * FROM `songs_for_males_playlist`")
                 songs = cursor.fetchall()
 
-                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `song_id`) VALUES "
+                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
                 for song in songs:
-                    insert_query += f"({playlist_id}, {song['song_id']}),"
+                    insert_query += f"({playlist_id}, {song['composition_id']}),"
                 
                 cursor.execute(insert_query[:-1])
                 connection.commit()
@@ -111,9 +111,9 @@ def update_playlist(form):
                 cursor.execute("SELECT * FROM `songs_for_females_playlist`")
                 songs = cursor.fetchall()
 
-                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `song_id`) VALUES "
+                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
                 for song in songs:
-                    insert_query += f"({playlist_id}, {song['song_id']}),"
+                    insert_query += f"({playlist_id}, {song['composition_id']}),"
                 
                 cursor.execute(insert_query[:-1])
                 connection.commit()
@@ -134,9 +134,9 @@ def update_playlist(form):
                 cursor.execute("SELECT * FROM `songs_for_youngsters_playlist`")
                 songs = cursor.fetchall()
 
-                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `song_id`) VALUES "
+                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
                 for song in songs:
-                    insert_query += f"({playlist_id}, {song['song_id']}),"
+                    insert_query += f"({playlist_id}, {song['composition_id']}),"
                 
                 cursor.execute(insert_query[:-1])
                 connection.commit()
