@@ -1,0 +1,15 @@
+{%extends 'login.html'%}
+
+{%block title%}Registration{%endblock%}
+
+{%block auth_type %} Registration {%endblock%}
+
+{%block user_data %}
+{{super()}}
+<label for="">Comfirm password</label>
+<input type="password" name="" id="" placeholder="confirm password...">
+{%endblock%}
+
+{%block button_name%}Register{%endblock%}
+
+{%block register_me%}{%endblock%}

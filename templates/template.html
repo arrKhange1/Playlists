@@ -10,16 +10,18 @@
     <title>{%block title%} {%endblock%}</title>
 </head>
 <body>
+    <div class="user">
+        {%block user%} {%endblock%}
+    </div>
+
     <div class="container">
         <header>
             <div class="header_title">ListenUp!</div>
             <nav class="navigation">
-                {%block nav%}
                 <ul>
-                    <li><a href="/">Survey</a></li>
-                    <li><a href="/playlists_page">Playlists</a></li>
+                    {%block nav%}
+                    {%endblock%}
                 </ul>
-                {%endblock%}
             </nav>
         </header>
         <div class="content">

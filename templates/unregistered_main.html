@@ -2,6 +2,14 @@
 
 {%block title%}Survey{%endblock%}
 
+{%block user%}
+<button class="login_button"><a href="/login">Login</a></button>
+{%endblock%}
+
+{%block nav%}
+<li><a href="/">Survey</a></li>
+{%endblock%}
+
 {%block content%}
 <div class="imgs_slider">
     <img class="slider_elem" src="{{url_for('static', filename='imgs/survey_img_vinil.jpg' )}}" alt="">
@@ -12,24 +20,26 @@
 <div class="survey">
     <form class="survey_container" method="post">
         <div class="survey_title">Favorite Songs</div>
-        <div class="survey_email">
-            <label for="email">Enter e-mail here:</label>
-            <input type="email" name="email" id="email" placeholder="mailbox@gmail.com" required>
-        </div>
-        <div class="survey_sex_age">
-            <div class="survey_male">
-                <input type="radio" name="sex" value="M" id="M" checked>
-                <label for="M">Male</label>
+        {%block personal_data%}
+            <div class="survey_email">
+                <label for="email">Enter e-mail here:</label>
+                <input type="email" name="email" id="email" placeholder="mailbox@gmail.com" required>
             </div>
-            <div class="survey_female">
-                <input type="radio" name="sex" value="F" id="F">
-                <label for="F">Female </label>
+            <div class="survey_sex_age">
+                <div class="survey_male">
+                    <input type="radio" name="sex" value="M" id="M" checked>
+                    <label for="M">Male</label>
+                </div>
+                <div class="survey_female">
+                    <input type="radio" name="sex" value="F" id="F">
+                    <label for="F">Female </label>
+                </div>
+                <div class="survey_age">
+                    <label for="age_checker">Age:</label>
+                    <input type="number" name="age" id="age_checker" min="16" max="100" size="3" required>
+                </div>
             </div>
-            <div class="survey_age">
-                <label for="age_checker">Age:</label>
-                <input type="number" name="age" id="age_checker" min="16" max="100" size="3" required>
-            </div>
-        </div>
+        {%endblock%}
         <div class="survey_songs">
             <datalist id="songs">
                 {% for song in songs %}

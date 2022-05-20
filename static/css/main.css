@@ -13,6 +13,10 @@ li {
   list-style-type: none;
 }
 
+body {
+  position: relative;
+}
+
 html, body {
   width: 100%;
   height: 100%;
@@ -20,6 +24,13 @@ html, body {
   margin: 0;
   background-color: black;
   color: #f195ac;
+}
+
+.user {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 20px;
 }
 
 .container {

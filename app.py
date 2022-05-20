@@ -183,19 +183,54 @@ def get_ready_playlists():
 app = Flask(__name__)
 
 
-@app.route("/", methods=['GET','POST'])
-def index():
+@app.route("/", methods=['GET','POST']) #unregistered
+def unregistered():
     songs = select_songs()
     if request.method == "POST" and request.form != []:
         insert_survey_result(request.form)
         update_playlist(request.form)
 
-    return render_template("index.html", songs=songs)
+    return render_template("unregistered_main.html", songs=songs)
 
-@app.route("/playlists_page")
-def playlists():
+@app.route("/registered", methods=['GET','POST'])
+def registered():
+    songs = select_songs()
+    if request.method == "POST" and request.form != []:
+        insert_survey_result(request.form)
+        update_playlist(request.form)
+
+    return render_template("registered_main.html", songs=songs)
+
+@app.route("/admin", methods=['GET','POST'])
+def admin():
+    songs = select_songs()
+    if request.method == "POST" and request.form != []:
+        insert_survey_result(request.form)
+        update_playlist(request.form)
+
+    return render_template("admin_main.html", songs=songs)
+
+@app.route("/registered_playlists")
+def registered_playlists():
     playlists = get_ready_playlists()
-    return render_template("playlists.html", playlists=playlists.items())
+    return render_template("registered_playlists.html", playlists=playlists.items())
+
+@app.route("/admin_playlists")
+def admin_playlists():
+    playlists = get_ready_playlists()
+    return render_template("admin_playlists.html", playlists=playlists.items())
+
+
+@app.route("/login")
+def login():
+    
+    return render_template("login.html")
+
+
+@app.route("/register")
+def register():
+    
+    return render_template("register.html")
 
 
 if __name__ == "__main__":

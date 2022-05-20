@@ -1,5 +1,6 @@
 
 @import url(fonts.css);
+
 * {
     box-sizing: border-box;
 }
@@ -14,7 +15,9 @@ li {
     list-style-type: none;
 }
 
-
+body {
+    position: relative;
+}
 
 html,body {
     width: 100%;
@@ -27,6 +30,12 @@ html,body {
     color: #f195ac;
 }
 
+.user {
+    position: absolute;
+    top:0;
+    right: 0;
+    margin: 20px;
+}
 
 
 .container {
