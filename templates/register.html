@@ -7,7 +7,21 @@
 {%block user_data %}
 {{super()}}
 <label for="">Comfirm password</label>
-<input type="password" name="" id="" placeholder="confirm password...">
+<input name="confirm" type="password" name="" id="" placeholder="confirm password..." required>
+<div class="register_sex_age">
+    <div class="register_male">
+        <input type="radio" name="sex" value="M" id="M" checked>
+        <label for="M">Male</label>
+    </div>
+    <div class="register_female">
+        <input type="radio" name="sex" value="F" id="F">
+        <label for="F">Female </label>
+    </div>
+    <div class="register_age">
+        <label for="age_checker"> Age:</label>
+        <input type="number" name="age" id="age_checker" min="16" max="100" size="3" required>
+    </div>
+</div>
 {%endblock%}
 
 {%block button_name%}Register{%endblock%}

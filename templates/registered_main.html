@@ -1,8 +1,8 @@
 {%extends 'unregistered_main.html'%}
 
 {%block user%}
-<div>User</div>
-<button>Logout</button>
+<div>{{ email }}</div>
+<button><a href="/logout">Logout</a></button>
 {%endblock%}
 
 {%block nav%}

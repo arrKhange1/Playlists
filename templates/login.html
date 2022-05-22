@@ -13,12 +13,12 @@
         <form action="" method="post">
             {%block user_data %}
                 <label for="">Email</label>
-                <input type="text" name="" id="" placeholder="email...">
+                <input name="email" type="text" name="" id="" placeholder="email..." required>
                 <label for="">Password</label>
-                <input type="password" name="" id="" placeholder="password...">
+                <input name="password" type="password" name="" id="" placeholder="password..." required>
             {%endblock%}
             <div>
-                <button>{%block button_name%}Login{%endblock%}</button>
+                <input type="submit" value="Send">
                 {%block register_me%}<a href="/register">Register me</a>{%endblock%}
             </div>
         </form>
