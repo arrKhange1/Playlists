@@ -40,11 +40,17 @@ def insert_respondent(form):
         with connection.cursor() as cursor:
             if not form.get('password'):
                 query = f"INSERT INTO `respondent` (`respondent_sex`,`respondent_age`,`respondent_email`) VALUES ('{form['sex']}',{form['age']},'{form['email']}')"
-                print(query)
+                
             else:
-                query = f"INSERT INTO `respondent` (`respondent_sex`,`respondent_age`,`respondent_email`, `password`) VALUES ('{form['sex']}',{form['age']},'{form['email']}', '{form['password']}')"
-                print(query)
-            print(query)
+                cursor.execute(f"SELECT `password` FROM `respondent` WHERE respondent_email = '{form['email']}'")
+                user = cursor.fetchall()
+                
+                if not user:
+                    if form['password'] == form['confirm']:
+                        query = f"INSERT INTO `respondent` (`respondent_sex`,`respondent_age`,`respondent_email`, `password`) VALUES ('{form['sex']}',{form['age']},'{form['email']}', '{form['password']}')"
+                elif user[0]['password'] == None:
+                    query = f"UPDATE `respondent` SET password = '{form['password']}', respondent_age = {form['age']}, respondent_sex = '{form['sex']}' WHERE respondent_email = '{form['email']}'"
+            
             cursor.execute(query)
             connection.commit()
         return True
@@ -55,7 +61,7 @@ def insert_respondent(form):
 
 def insert_survey_result(form):
     
-    if (session or insert_respondent(form)):
+    if (session.get('user_data') or insert_respondent(form)):
         try:
 
             with connection.cursor() as cursor:
@@ -183,9 +189,22 @@ def get_ready_playlists():
         
         return format_raw_playlists(raw_playlists)
 
-        
-
-
+def validate_user(form, session):
+    with connection.cursor() as cursor:     
+        cursor.execute(f"SELECT `password`,`respondent_sex` as sex, `respondent_age` as age FROM `respondent` WHERE respondent_email = '{form['email']}'")
+        user_data = cursor.fetchall()
+        print(user_data)
+        if user_data:
+            if (form['password'] == user_data[0]['password']):
+                del user_data[0]['password']
+                user_data[0]['email'] = form['email']
+                session['user_data'] = user_data[0]
+                return True
+            else:
+                print('incorrect password')
+                return False
+        print('no respondent')
+        return False
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bc83989cdfdd894859fkdlfd83i489ffjdj99'
@@ -195,9 +214,9 @@ app.permanent_session_lifetime = datetime.timedelta(days=1)
 @app.route("/", methods=['GET','POST']) #unregistered
 def unregistered():
     session.permanent = True
-    if session.get('email') == 'admin@admin.ru':
-        return redirect('/admin')
-    elif session:
+    if session.get('user_data'):
+        if (session['user_data']['email'] == 'admin@admin.ru'):
+            return redirect('/admin')
         return redirect('/registered')
 
     songs = select_songs()
@@ -209,9 +228,8 @@ def unregistered():
 
 @app.route("/registered", methods=['GET','POST'])
 def registered():
-    if not session:
+    if not session.get('user_data'):
         abort(404)
-
     songs = select_songs()
     if request.method == "POST" and request.form != []:
         new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
@@ -223,7 +241,7 @@ def registered():
 
 @app.route("/admin", methods=['GET','POST'])
 def admin():
-    if not session:
+    if not session.get('user_data'):
         abort(404)
 
     songs = select_songs()
@@ -235,7 +253,7 @@ def admin():
 
 @app.route("/registered_playlists")
 def registered_playlists():
-    if not session:
+    if not session.get('user_data'):
         abort(404)
 
     playlists = get_ready_playlists()
@@ -243,31 +261,34 @@ def registered_playlists():
 
 @app.route("/admin_playlists")
 def admin_playlists():
-    if not session:
+    if not session.get('user_data'):
         abort(404)
 
     playlists = get_ready_playlists()
     return render_template("admin_playlists.html", playlists=playlists.items())
 
 
-@app.route("/login")
+@app.route("/login", methods=['GET','POST'])
 def login():
+    if request.method == "POST" and validate_user(request.form, session):
+        print(session['user_data'])
+        return redirect('/')
     
     return render_template("login.html")
 
 
 @app.route("/logout")
 def logout():
-    session.clear()
+    session['user_data'] = None
     return redirect('/')
 
 
-@app.route("/register", methods= ['GET','POST'])
+@app.route("/register", methods=['GET','POST'])
 def register():
     print(request.form)
-    if(request.method == 'POST' and request.form.get('password') == request.form.get('confirm') and insert_respondent(request.form)):
+    if request.method == 'POST' and insert_respondent(request.form):
         session['user_data'] = {'email':request.form['email'], 'sex':request.form['sex'], 'age': request.form['age']}
-        return redirect(url_for('registered'))
+        return redirect('/')
 
     return render_template("register.html")
 
