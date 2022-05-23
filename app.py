@@ -8,21 +8,25 @@ from db_config import host, user, password, db_name
 
 from flask import Flask, render_template, request, redirect, session, url_for, abort
 
-try:
-    connection = pymysql.connect(
-        host = host,
-        user = user,
-        password= password,
-        database=db_name,
-        cursorclass=pymysql.cursors.DictCursor
-    )
-    print("Successfully connected...")
+connection = None
+def db_connect(user,password):
+    try:
+        global connection
+
+        connection = pymysql.connect(
+            host = host,
+            user = user,
+            password= password,
+            database=db_name,
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        
+        print("Successfully connected...")
 
 
-except Exception as ex:
-    print("Connection failed...")
-    print(ex)
-
+    except Exception as ex:
+        print("Connection failed...")
+        print(ex)
 
 def select_songs():
     result = ()
@@ -211,13 +215,23 @@ app.config['SECRET_KEY'] = 'bc83989cdfdd894859fkdlfd83i489ffjdj99'
 app.permanent_session_lifetime = datetime.timedelta(days=1)
 
 
-@app.route("/", methods=['GET','POST']) #unregistered
-def unregistered():
+@app.route("/", methods=['GET','POST']) 
+def hub():
     session.permanent = True
+
     if session.get('user_data'):
         if (session['user_data']['email'] == 'admin@admin.ru'):
+
+            db_connect('admin','admin')
             return redirect('/admin')
+        
+        db_connect('registered_user','user')
+        
+        print(connection.user)
         return redirect('/registered')
+
+    #unregistered
+    db_connect('guest','guest')
 
     songs = select_songs()
     if request.method == "POST" and request.form != []:
@@ -228,8 +242,9 @@ def unregistered():
 
 @app.route("/registered", methods=['GET','POST'])
 def registered():
-    if not session.get('user_data'):
+    if connection.user == b'guest':
         abort(404)
+        
     songs = select_songs()
     if request.method == "POST" and request.form != []:
         new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
@@ -239,39 +254,41 @@ def registered():
 
     return render_template("registered_main.html", songs=songs, email=session['user_data']['email'])
 
-@app.route("/admin", methods=['GET','POST'])
+@app.route("/admin", methods=['GET','POST']) 
 def admin():
-    if not session.get('user_data'):
+    if connection.user != b'admin':
         abort(404)
 
     songs = select_songs()
     if request.method == "POST" and request.form != []:
-        insert_survey_result(request.form)
-        update_playlist(request.form)
+        new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
+        new_form.update(request.form.to_dict())
+        insert_survey_result(new_form)
+        update_playlist(new_form)
 
-    return render_template("admin_main.html", songs=songs)
+    return render_template("admin_main.html", songs=songs, email=session['user_data']['email'])
 
 @app.route("/registered_playlists")
 def registered_playlists():
-    if not session.get('user_data'):
+    if connection.user == b'guest':
         abort(404)
 
+    
     playlists = get_ready_playlists()
     return render_template("registered_playlists.html", playlists=playlists.items(), email=session['user_data']['email'])
 
 @app.route("/admin_playlists")
 def admin_playlists():
-    if not session.get('user_data'):
+    if connection.user != b'admin':
         abort(404)
 
     playlists = get_ready_playlists()
-    return render_template("admin_playlists.html", playlists=playlists.items())
+    return render_template("admin_playlists.html", playlists=playlists.items(),email=session['user_data']['email'])
 
 
 @app.route("/login", methods=['GET','POST'])
 def login():
     if request.method == "POST" and validate_user(request.form, session):
-        print(session['user_data'])
         return redirect('/')
     
     return render_template("login.html")
@@ -285,7 +302,6 @@ def logout():
 
 @app.route("/register", methods=['GET','POST'])
 def register():
-    print(request.form)
     if request.method == 'POST' and insert_respondent(request.form):
         session['user_data'] = {'email':request.form['email'], 'sex':request.form['sex'], 'age': request.form['age']}
         return redirect('/')
