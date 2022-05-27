@@ -2,12 +2,11 @@
 
 import datetime
 import os
-from unicodedata import category
 
 import pymysql
 from db_config import host, user, password, db_name
 
-from flask import Flask, render_template, request, redirect, session, url_for, abort
+from flask import Flask, render_template, request, redirect, session, url_for, abort, flash 
 
 connection = None
 def db_connect(user,password):
@@ -61,6 +60,8 @@ def insert_respondent(form):
         return True
     except:
         print("respondent Error")
+
+        flash('respondent Error')
         return False
     
 
@@ -74,6 +75,14 @@ def insert_survey_result(form):
                 cursor.execute(query)
 
                 respondent_id = cursor.fetchall()[0]['respondent_id']
+                if session.get('user_data'):
+                    cursor.execute(f"SELECT * FROM survey_result WHERE survey_id = 1 and respondent_id = {respondent_id}")
+                    if (cursor.fetchall()):
+                        print('registered user is already in survey_result')
+                        return False
+                    else:
+                        print('added registered user')
+
                 insert_query = "INSERT INTO `survey_result` (`survey_id`, `composition_id`, `respondent_id`) VALUES "
                 for i in range(5):
                     song_key_json = f'song{i+1}'
@@ -81,13 +90,15 @@ def insert_survey_result(form):
                     cursor.execute(f"SELECT `id` FROM `composition` JOIN `song` ON composition.song_id = song.song_id JOIN `author` ON composition.author_id = author.author_id WHERE  song_name = '{form[song_key_json].split('-')[1].strip()}' AND author_pseudo = '{form[song_key_json].split('-')[0].strip()}' ")
                     composition_id = cursor.fetchall()[0]['id']
 
-                    insert_query += f"(1, {composition_id}, {respondent_id}),"
+                    insert_query += f"(1, {composition_id}, {respondent_id})," # инсерт в опрос с идом 1
 
                 cursor.execute(insert_query[:-1])
                 connection.commit()
+                return True
         except:
             print("survey_result Error")
-    
+            return False
+    return False
 
 def update_playlist(form):
     
@@ -266,8 +277,7 @@ def hub():
     db_connect('guest','guest')
 
     songs = select_songs()
-    if request.method == "POST" and request.form != []:
-        insert_survey_result(request.form)
+    if request.method == "POST" and request.form != [] and insert_survey_result(request.form):
         update_playlist(request.form)
 
     return render_template("unregistered_main.html", songs=songs)
@@ -281,8 +291,8 @@ def registered():
     if request.method == "POST" and request.form != []:
         new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
         new_form.update(request.form.to_dict())
-        insert_survey_result(new_form)
-        update_playlist(new_form)
+        if insert_survey_result(new_form):
+            update_playlist(new_form)
 
     return render_template("registered_main.html", songs=songs, email=session['user_data']['email'])
 
@@ -295,8 +305,8 @@ def admin():
     if request.method == "POST" and request.form != []:
         new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
         new_form.update(request.form.to_dict())
-        insert_survey_result(new_form)
-        update_playlist(new_form)
+        if insert_survey_result(new_form):
+            update_playlist(new_form)
 
     return render_template("admin_main.html", songs=songs, email=session['user_data']['email'])
 
