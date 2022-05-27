@@ -2,6 +2,7 @@
 
 import datetime
 import os
+from unicodedata import category
 
 import pymysql
 from db_config import host, user, password, db_name
@@ -31,7 +32,7 @@ def db_connect(user,password):
 def select_songs():
     result = ()
     with connection.cursor() as cursor:
-        query = "SELECT  `song_name`, `author_pseudo` FROM `song_author` JOIN `author` ON song_author.author_id = author.author_id JOIN `song` ON song_author.song_id = song.song_id"
+        query = "SELECT  `song_name`, `author_pseudo` FROM `composition` JOIN `author` ON composition.author_id = author.author_id JOIN `song` ON composition.song_id = song.song_id"
         cursor.execute(query)
         result = cursor.fetchall()
     return result
@@ -77,7 +78,7 @@ def insert_survey_result(form):
                 for i in range(5):
                     song_key_json = f'song{i+1}'
                     
-                    cursor.execute(f"SELECT `id` FROM `song_author` JOIN `song` ON song_author.song_id = song.song_id JOIN `author` ON song_author.author_id = author.author_id WHERE  song_name = '{form[song_key_json].split('-')[1].strip()}' AND author_pseudo = '{form[song_key_json].split('-')[0].strip()}' ")
+                    cursor.execute(f"SELECT `id` FROM `composition` JOIN `song` ON composition.song_id = song.song_id JOIN `author` ON composition.author_id = author.author_id WHERE  song_name = '{form[song_key_json].split('-')[1].strip()}' AND author_pseudo = '{form[song_key_json].split('-')[0].strip()}' ")
                     composition_id = cursor.fetchall()[0]['id']
 
                     insert_query += f"(1, {composition_id}, {respondent_id}),"
@@ -87,7 +88,6 @@ def insert_survey_result(form):
         except:
             print("survey_result Error")
     
-
 
 def update_playlist(form):
     
@@ -104,11 +104,11 @@ def update_playlist(form):
                 cursor.execute("SELECT * FROM `songs_for_males_playlist`")
                 songs = cursor.fetchall()
 
-                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
+                insert_playlist_query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
                 for song in songs:
-                    insert_query += f"({playlist_id}, {song['composition_id']}),"
+                    insert_playlist_query += f"({playlist_id}, {song['composition_id']}),"
                 
-                cursor.execute(insert_query[:-1])
+                cursor.execute(insert_playlist_query[:-1])
                 connection.commit()
             except:
                 print("update_playlist Error")
@@ -210,6 +210,38 @@ def validate_user(form, session):
         print('no respondent')
         return False
 
+def stat_query():
+    query_tables = {}
+    with connection.cursor() as cursor:
+        
+        cursor.execute("SELECT * FROM stats_total_listeners_for_each_song")
+        query_tables["Кол-во слушателей на каждую песню: "] = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stats_song_with_max_listeners")
+        query_tables["Песни c макс. слушателей: "] = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stats_songs_with_min_listeners")
+        query_tables["Песни c мин. слушателей: "] = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stats_avg_unique_listeners")
+        query_tables["Среднее кол-во уник. слушателей: "] = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stats_most_listened_females")
+        query_tables["Наиболее прослушиваемые женщинами: "] = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stats_most_listened_males")
+        query_tables["Наиболее прослушиваемые мужчинами: "] = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stats_most_listened_youngsters")
+        query_tables["Наиболее прослушиваемые молодежью: "] = cursor.fetchall()
+
+        cursor.execute("SELECT * FROM stats_song_containing_in_most_playlists")
+        query_tables["Песни, сод. в наиб кол-ве плейлистов: "] = cursor.fetchall()
+
+
+
+        return query_tables
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bc83989cdfdd894859fkdlfd83i489ffjdj99'
 app.permanent_session_lifetime = datetime.timedelta(days=1)
@@ -267,6 +299,17 @@ def admin():
         update_playlist(new_form)
 
     return render_template("admin_main.html", songs=songs, email=session['user_data']['email'])
+
+@app.route("/admin_statistics") 
+def admin_statistics():
+    if connection.user != b'admin':
+        abort(404)
+    for query_name in stat_query().keys():
+           print(query_name)
+        
+    return render_template("admin_statistics.html", stat_queries=stat_query(), email=session['user_data']['email'])
+    
+
 
 @app.route("/registered_playlists")
 def registered_playlists():

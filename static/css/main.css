@@ -91,6 +91,7 @@ html, body {
   -webkit-box-flex: 1;
       -ms-flex-positive: 1;
           flex-grow: 1;
+  position: relative;
 }
 
 .imgs_slider {
@@ -176,5 +177,39 @@ html, body {
 .song[data-descr]::before {
   content: attr(data-descr);
   width: 20px;
+}
+
+.statistics_container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  color: white;
+  width: 50%;
+  height: 100%;
+  margin: 0 auto;
+  overflow: auto;
+}
+
+.statistics_query_name {
+  margin: 20px;
+}
+
+.statistics_result_table {
+  margin: 0 auto;
+}
+
+.statistics_result_table th {
+  padding: 5px;
+  border: 1px solid white;
+}
+
+.statistics_result_table td {
+  padding: 5px;
+  border: 1px solid white;
+}
+
+.statistics_error {
+  color: red;
+  margin-left: 5px;
 }
 /*# sourceMappingURL=main.css.map */
