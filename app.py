@@ -52,16 +52,22 @@ def insert_respondent(form):
                 if not user:
                     if form['password'] == form['confirm']:
                         query = f"INSERT INTO `respondent` (`respondent_sex`,`respondent_age`,`respondent_email`, `password`) VALUES ('{form['sex']}',{form['age']},'{form['email']}', '{form['password']}')"
+                        flash('successfully registered', 'success')
+                    else:
+                        flash('passwords don\'t match','error')    
                 elif user[0]['password'] == None:
                     query = f"UPDATE `respondent` SET password = '{form['password']}', respondent_age = {form['age']}, respondent_sex = '{form['sex']}' WHERE respondent_email = '{form['email']}'"
+                    flash('successfully registered', 'success')
+                else:
+                    flash('the user already exists', 'error')
             
             cursor.execute(query)
             connection.commit()
+        
         return True
     except:
         print("respondent Error")
 
-        flash('respondent Error')
         return False
     
 
@@ -75,13 +81,14 @@ def insert_survey_result(form):
                 cursor.execute(query)
 
                 respondent_id = cursor.fetchall()[0]['respondent_id']
+
                 if session.get('user_data'):
                     cursor.execute(f"SELECT * FROM survey_result WHERE survey_id = 1 and respondent_id = {respondent_id}")
                     if (cursor.fetchall()):
+                        flash('user has already run the survey', 'error')
+
                         print('registered user is already in survey_result')
                         return False
-                    else:
-                        print('added registered user')
 
                 insert_query = "INSERT INTO `survey_result` (`survey_id`, `composition_id`, `respondent_id`) VALUES "
                 for i in range(5):
@@ -94,10 +101,14 @@ def insert_survey_result(form):
 
                 cursor.execute(insert_query[:-1])
                 connection.commit()
+
+                flash('the survey has been successfully run', 'success')
                 return True
         except:
             print("survey_result Error")
             return False
+
+    flash('user has already run the survey', 'error')
     return False
 
 def update_playlist(form):
@@ -208,16 +219,22 @@ def validate_user(form, session):
     with connection.cursor() as cursor:     
         cursor.execute(f"SELECT `password`,`respondent_sex` as sex, `respondent_age` as age FROM `respondent` WHERE respondent_email = '{form['email']}'")
         user_data = cursor.fetchall()
-        print(user_data)
         if user_data:
             if (form['password'] == user_data[0]['password']):
                 del user_data[0]['password']
                 user_data[0]['email'] = form['email']
                 session['user_data'] = user_data[0]
+
+                flash('successfully logged in', 'success')
                 return True
             else:
+                flash('incorrect password', 'error')
+
                 print('incorrect password')
                 return False
+
+        flash('no respondent found', 'error')
+
         print('no respondent')
         return False
 
@@ -293,7 +310,7 @@ def registered():
         new_form.update(request.form.to_dict())
         if insert_survey_result(new_form):
             update_playlist(new_form)
-
+        
     return render_template("registered_main.html", songs=songs, email=session['user_data']['email'])
 
 @app.route("/admin", methods=['GET','POST']) 

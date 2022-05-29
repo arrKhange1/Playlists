@@ -68,3 +68,16 @@ body {
         margin-left: 5px
     }
 }
+
+.flash.success {
+    border: 1px solid yellow;
+    color: green;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+.flash.error {
+    border: 1px solid yellow;
+    color: red;
+    margin-bottom: 10px;
+}

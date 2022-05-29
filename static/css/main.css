@@ -121,7 +121,6 @@ html, body {
           justify-content: space-evenly;
   width: 70%;
   height: 100%;
-  border: 1px solid white;
   margin: 0 auto;
   font-family: "Vice City";
   font-size: 25px;
@@ -208,8 +207,15 @@ html, body {
   border: 1px solid white;
 }
 
-.statistics_error {
+.flash.success {
+  border: 1px solid yellow;
+  color: green;
+  padding: 10px;
+}
+
+.flash.error {
+  border: 1px solid yellow;
   color: red;
-  margin-left: 5px;
+  padding: 10px;
 }
 /*# sourceMappingURL=main.css.map */

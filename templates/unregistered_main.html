@@ -20,6 +20,10 @@
 <div class="survey">
     <form class="survey_container" method="post">
         <div class="survey_title">Favorite Songs</div>
+        {% for cat, msg in get_flashed_messages(True) %}
+            <div class="flash {{cat}}">{{msg}}</div>
+        {%endfor%}
+
         {%block personal_data%}
             <div class="survey_email">
                 <label for="email">Enter e-mail here:</label>
@@ -68,4 +72,3 @@
 </div>
 {%endblock%}
 
-<div style="color: white;">{{get_flashed_messages()}}</div>
