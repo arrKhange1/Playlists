@@ -68,6 +68,8 @@ html,body {
     ul {
         display: flex;
         justify-content: space-evenly;
+
+        
     }
 }
 
@@ -144,37 +146,7 @@ html,body {
     width: 20px;
 }
 
-.statistics_container {
-    position: absolute;
-    left: 0;
-    right: 0;
-    
-    color: white;
-    width: 50%;
-    height: 100%;
-    margin: 0 auto;
-    overflow: auto;
 
-    
-}
-
-.statistics_query_name {
-    margin: 20px;
-}
-
-.statistics_result_table {
-    margin: 0 auto;
-
-    th {
-        padding: 5px;
-        border: 1px solid white;
-    }
-
-    td {
-        padding: 5px;
-        border: 1px solid white;
-    }
-}
 
 .flash.success {
     border: 1px solid yellow;

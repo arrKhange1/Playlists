@@ -1,224 +1,249 @@
 
-
 import datetime
 import os
 
+from db_config import host, db_name
 import pymysql
-from db_config import host, user, password, db_name
 
 from flask import Flask, render_template, request, redirect, session, url_for, abort, flash 
 
-connection = None
-def db_connect(user,password):
-    try:
-        global connection
 
-        connection = pymysql.connect(
-            host = host,
-            user = user,
-            password= password,
-            database=db_name,
-            cursorclass=pymysql.cursors.DictCursor
-        )
-        
-        print("Successfully connected...")
-
-
-    except Exception as ex:
-        print("Connection failed...")
-        print(ex)
-
-def select_songs():
-    result = ()
-    with connection.cursor() as cursor:
+class SelectPreparator:
+    def select_songs(self):
         query = "SELECT  `song_name`, `author_pseudo` FROM `composition` JOIN `author` ON composition.author_id = author.author_id JOIN `song` ON composition.song_id = song.song_id"
-        cursor.execute(query)
-        result = cursor.fetchall()
-    return result
-
-
-def insert_respondent(form):
+        return query
     
-    try:
+    def select_respondent_id_by_email(self,form):
+         query = f"SELECT `respondent_id` FROM `respondent` WHERE respondent_email = '{form['email']}'"
+         return query
 
-        with connection.cursor() as cursor:
-            if not form.get('password'):
-                query = f"INSERT INTO `respondent` (`respondent_sex`,`respondent_age`,`respondent_email`) VALUES ('{form['sex']}',{form['age']},'{form['email']}')"
-                
-            else:
-                cursor.execute(f"SELECT `password` FROM `respondent` WHERE respondent_email = '{form['email']}'")
-                user = cursor.fetchall()
-                
-                if not user:
-                    if form['password'] == form['confirm']:
-                        query = f"INSERT INTO `respondent` (`respondent_sex`,`respondent_age`,`respondent_email`, `password`) VALUES ('{form['sex']}',{form['age']},'{form['email']}', '{form['password']}')"
-                        flash('successfully registered', 'success')
-                    else:
-                        flash('passwords don\'t match','error')    
-                elif user[0]['password'] == None:
-                    query = f"UPDATE `respondent` SET password = '{form['password']}', respondent_age = {form['age']}, respondent_sex = '{form['sex']}' WHERE respondent_email = '{form['email']}'"
-                    flash('successfully registered', 'success')
-                else:
-                    flash('the user already exists', 'error')
+    def select_respondent_pass_sex_age_by_email(self,form):
+        query = f"SELECT `password`,`respondent_sex` as sex, `respondent_age` as age FROM `respondent` WHERE respondent_email = '{form['email']}'"
+        return query
+
+    def select_respondent_from_survey(self,resp_id):
+        query = f"SELECT * FROM survey_result WHERE survey_id = 1 and respondent_id = {resp_id}"
+        return query
+
+    def select_composition_id(self,form, song_key):
+        song_name =  ''.join(["\\'" if s == "'" else s for s in form[song_key].split('-')[1].strip()])
+        author_pseudo = ''.join(["\\'" if s == "'" else s for s in form[song_key].split('-')[0].strip()])
+        query = f"SELECT `id` FROM `composition` JOIN `song` ON composition.song_id = song.song_id JOIN `author` ON composition.author_id = author.author_id WHERE  song_name = '{song_name}' AND author_pseudo = '{author_pseudo}' "
+        return query
+
+    def select_male_playlist(self):
+        query = "SELECT * FROM get_male_playlist_id"
+        return query
+    
+    def select_male_songs(self):
+        query = "SELECT * FROM `songs_for_males_playlist`"
+        return query
+    
+    def select_female_playlist(self):
+        query = "SELECT * FROM get_female_playlist_id"
+        return query
+    
+    def select_female_songs(self):
+        query = "SELECT * FROM `songs_for_females_playlist`"
+        return query
+    
+    def select_youngster_playlist(self):
+        query = "SELECT * FROM get_youngsters_playlist_id"
+        return query
+    
+    def select_youngster_songs(self):
+        query = "SELECT * FROM `songs_for_youngsters_playlist`"
+        return query
+    
+    def select_all_playlists(self):
+        query = "SELECT * FROM `get_each_playlist`"
+        return query
+    
+    def select_password_by_email(self,form):
+        query = f"SELECT `password` FROM `respondent` WHERE respondent_email = '{form['email']}'"
+        return query
+
+class InsertPreparator:
+    def insert_respondent(self,form):
+        query = f"INSERT INTO `respondent` (`respondent_sex`,`respondent_age`,`respondent_email`) VALUES ('{form['sex']}',{form['age']},'{form['email']}')"
+        return query
+    
+    def insert_respondent_with_password(self,form):
+        query = f"INSERT INTO `respondent` (`respondent_sex`,`respondent_age`,`respondent_email`, `password`) VALUES ('{form['sex']}',{form['age']},'{form['email']}', '{form['password']}')"
+        return query
+
+    def insert_survey_result(self,form):
+        select_preparator = SelectPreparator()
+        if (session.get('user_data') or database.insert(self.insert_respondent(form))):
+            select_resp_result = database.select(select_preparator.select_respondent_id_by_email(form))
+            respondent_id = select_resp_result[0]['respondent_id']
+
+            survey_validator = SurveyValidator()
+            if not survey_validator.validate_survey_result_insert(respondent_id):
+                flash('user has already run the survey', 'error')
+                return None
             
-            cursor.execute(query)
-            connection.commit()
+            insert_query = "INSERT INTO `survey_result` (`survey_id`, `composition_id`, `respondent_id`) VALUES "
+            for i in range(5):
+                song_key_json = f'song{i+1}'
+                result = database.select(select_preparator.select_composition_id(form, song_key_json))
+                composition_id = result[0]['id']
+                insert_query += f"(1, {composition_id}, {respondent_id})," # инсерт в опрос с идом 1
+
+            flash('the survey has been successfully run', 'success')
+            return insert_query[:-1]
         
-        return True
-    except:
-        print("respondent Error")
+        flash('user has already run the survey', 'error')
+        return None
 
-        return False
-    
+    def insert_playlist(self, songs, playlist_id):
+        query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
+        for song in songs:
+            query += f"({playlist_id}, {song['composition_id']}),"
+        return query[:-1]
 
-def insert_survey_result(form):
-    
-    if (session.get('user_data') or insert_respondent(form)):
+class UpdatePreparator:
+    def update_password(self,form):
+        query = f"UPDATE `respondent` SET password = '{form['password']}', respondent_age = {form['age']}, respondent_sex = '{form['sex']}' WHERE respondent_email = '{form['email']}'"
+        return query
+
+class DeletePreparator:
+    def delete_playlist(self,playlist_id):
+        query = f"DELETE FROM `playlist_inner` WHERE playlist_id = {playlist_id}"
+        return query
+
+class PlaylistsUpdater:
+
+    def update_playlist(self,select_playlist, select_songs_for_playlist):
+        delete_preparator = DeletePreparator()
+        insert_preparator = InsertPreparator()
+
+        try:
+            playlist_id = database.select(select_playlist())[0]['playlist_id']
+            database.delete(delete_preparator.delete_playlist(playlist_id))
+
+            songs = database.select(select_songs_for_playlist())
+            database.insert(insert_preparator.insert_playlist(songs,playlist_id))
+        
+        except Exception as e:
+            print('update Playlist Error: ', e)
+
+    def update_playlists(self,form):
+        select_preparator = SelectPreparator()
+
+        if form['sex'] == 'M':
+            self.update_playlist(select_preparator.select_male_playlist,select_preparator.select_male_songs)
+        elif form['sex'] == 'F':
+            self.update_playlist(select_preparator.select_female_playlist,select_preparator.select_female_songs)
+        if int(form['age']) <= 21:
+            self.update_playlist(select_preparator.select_youngster_playlist,select_preparator.select_youngster_songs)
+
+class Db:
+    def __init__(self, user, password):
         try:
 
-            with connection.cursor() as cursor:
-                query = f"SELECT `respondent_id` FROM `respondent` WHERE respondent_email = '{form['email']}'"
+            self.connection = pymysql.connect (
+                host = host,
+                user = user,
+                password= password,
+                database=db_name,
+                cursorclass=pymysql.cursors.DictCursor
+            )
+        
+            print("Successfully connected...")
+
+
+        except Exception as e:
+            print("Connection failed...",e)
+            
+    
+
+    def select(self,query):
+        try:
+            with self.connection.cursor() as cursor:
                 cursor.execute(query)
+                result = cursor.fetchall()
+                return result
+        except:
+            print("selection Error: ",query)
 
-                respondent_id = cursor.fetchall()[0]['respondent_id']
-
-                if session.get('user_data'):
-                    cursor.execute(f"SELECT * FROM survey_result WHERE survey_id = 1 and respondent_id = {respondent_id}")
-                    if (cursor.fetchall()):
-                        flash('user has already run the survey', 'error')
-
-                        print('registered user is already in survey_result')
-                        return False
-
-                insert_query = "INSERT INTO `survey_result` (`survey_id`, `composition_id`, `respondent_id`) VALUES "
-                for i in range(5):
-                    song_key_json = f'song{i+1}'
-                    
-                    cursor.execute(f"SELECT `id` FROM `composition` JOIN `song` ON composition.song_id = song.song_id JOIN `author` ON composition.author_id = author.author_id WHERE  song_name = '{form[song_key_json].split('-')[1].strip()}' AND author_pseudo = '{form[song_key_json].split('-')[0].strip()}' ")
-                    composition_id = cursor.fetchall()[0]['id']
-
-                    insert_query += f"(1, {composition_id}, {respondent_id})," # инсерт в опрос с идом 1
-
-                cursor.execute(insert_query[:-1])
-                connection.commit()
-
-                flash('the survey has been successfully run', 'success')
+    def insert(self,query):
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(query)
+                self.connection.commit()
                 return True
         except:
-            print("survey_result Error")
+            print("insertion Error: ",query)
             return False
 
-    flash('user has already run the survey', 'error')
-    return False
+    def update(self,query):
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(query)
+                self.connection.commit()
+        except:
+            print('update Error: ', query)
 
-def update_playlist(form):
-    
-    with connection.cursor() as cursor:
-        if (form['sex'] == 'M'):
+    def delete(self,query):
+        try:
+            with self.connection.cursor() as cursor:
+                cursor.execute(query)
+                self.connection.commit()
+        except:
+            print('delete Error: ', query)
 
-            cursor.execute("SELECT * FROM get_male_playlist_id")
-            playlist_id = cursor.fetchall()[0]['playlist_id']
             
-            try:
-
-                cursor.execute(f"DELETE FROM `playlist_inner` WHERE playlist_id = {playlist_id}")
-
-                cursor.execute("SELECT * FROM `songs_for_males_playlist`")
-                songs = cursor.fetchall()
-
-                insert_playlist_query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
-                for song in songs:
-                    insert_playlist_query += f"({playlist_id}, {song['composition_id']}),"
-                
-                cursor.execute(insert_playlist_query[:-1])
-                connection.commit()
-            except:
-                print("update_playlist Error")
-                connection.rollback()
-
-            print(songs)
-
-        elif (form['sex'] == 'F'):
-
-            cursor.execute("SELECT * FROM get_female_playlist_id")
-            playlist_id = cursor.fetchall()[0]['playlist_id']
-            
-            try:
-
-                cursor.execute(f"DELETE FROM `playlist_inner` WHERE playlist_id = {playlist_id}")
-
-                cursor.execute("SELECT * FROM `songs_for_females_playlist`")
-                songs = cursor.fetchall()
-
-                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
-                for song in songs:
-                    insert_query += f"({playlist_id}, {song['composition_id']}),"
-                
-                cursor.execute(insert_query[:-1])
-                connection.commit()
-            except:
-                print("update_playlist Error")
-                connection.rollback()
-            print(songs)
-        
-        if (int(form['age']) <= 21):
-
-            cursor.execute("SELECT * FROM get_youngsters_playlist_id")
-            playlist_id = cursor.fetchall()[0]['playlist_id']
-
-            try:
-
-                cursor.execute(f"DELETE FROM `playlist_inner` WHERE playlist_id = {playlist_id}")
-
-                cursor.execute("SELECT * FROM `songs_for_youngsters_playlist`")
-                songs = cursor.fetchall()
-
-                insert_query = "INSERT INTO `playlist_inner` (`playlist_id`, `composition_id`) VALUES "
-                for song in songs:
-                    insert_query += f"({playlist_id}, {song['composition_id']}),"
-                
-                cursor.execute(insert_query[:-1])
-                connection.commit()
-            except:
-                print("update_playlist Error")
-                connection.rollback()
-            print(songs)
-
-
-def format_raw_playlists(raw_playlists):
-    ready_playlists = {}
-    for raw_playlist in raw_playlists:
-        if ready_playlists.get((raw_playlist['category_name'], raw_playlist['category_image'])) is None:
-            ready_playlists[(raw_playlist['category_name'], raw_playlist['category_image'])] = [raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name']]
-        else:
-            ready_playlists[(raw_playlist['category_name'], raw_playlist['category_image'])].append(raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name'])
-    print(ready_playlists)
-    return ready_playlists       
-
-
-def write_to_file(data, filename):
+class Writer:
+    def write_to_file(self,data, filename):
     
-    with open(filename, 'wb') as file:
-        file.write(data)
-    print("Данный из blob сохранены в: ", filename, "\n")
+        with open(filename, 'wb') as file:
+            file.write(data)
+        print("Данные сохранены в: ", filename, "\n")
 
-def get_ready_playlists():
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM `get_each_playlist`")
-        raw_playlists = cursor.fetchall()
-        
-        for raw in raw_playlists:
-             photo_path = os.path.join("static\imgs\\", raw['category_name'] + ".jpg")
-             write_to_file(raw['category_image'], photo_path)
-             raw['category_image'] = photo_path
-        
-        
-        return format_raw_playlists(raw_playlists)
 
-def validate_user(form, session):
-    with connection.cursor() as cursor:     
-        cursor.execute(f"SELECT `password`,`respondent_sex` as sex, `respondent_age` as age FROM `respondent` WHERE respondent_email = '{form['email']}'")
-        user_data = cursor.fetchall()
+class Formatter:
+
+    def format_raw_playlists_cat_img(self,raw_playlists):
+            writer = Writer()
+            for raw_playlist in raw_playlists:
+                    photo_path = os.path.join("static\imgs\\", raw_playlist['category_name'] + ".jpg")
+                    writer.write_to_file(raw_playlist['category_image'], photo_path)
+                    raw_playlist['category_image'] = photo_path
+
+            return raw_playlists
+
+
+    def format_raw_playlists_as_dict(self):
+            select_preparator = SelectPreparator()
+            raw_playlists = database.select(select_preparator.select_all_playlists())
+
+            raw_playlists = self.format_raw_playlists_cat_img(raw_playlists)
+            ready_playlists = {}
+            for raw_playlist in raw_playlists:
+                if ready_playlists.get((raw_playlist['category_name'], raw_playlist['category_image'])) is None:
+                    ready_playlists[(raw_playlist['category_name'], raw_playlist['category_image'])] = [raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name']]
+                else:
+                    ready_playlists[(raw_playlist['category_name'], raw_playlist['category_image'])].append(raw_playlist['author_pseudo'] + ' - ' + raw_playlist['song_name'])
+            return ready_playlists
+
+
+class SurveyValidator:
+    def validate_survey_result_insert(self,resp_id):
+        if session.get('user_data'):
+            select_preparator = SelectPreparator()
+            result = database.select(select_preparator.select_respondent_from_survey(resp_id))
+            if (result):
+                return False
+        return True
+
+
+class UserValidator:
+
+    def validate_login(self,form,session):
+        select_preparator = SelectPreparator()
+        user_data = database.select(select_preparator.select_respondent_pass_sex_age_by_email(form))
+
         if user_data:
             if (form['password'] == user_data[0]['password']):
                 del user_data[0]['password']
@@ -230,45 +255,66 @@ def validate_user(form, session):
             else:
                 flash('incorrect password', 'error')
 
-                print('incorrect password')
                 return False
 
         flash('no respondent found', 'error')
 
-        print('no respondent')
         return False
+    
+    def validate_register(self,form):
+        select_preparator = SelectPreparator()
+        insert_preparator = InsertPreparator()
+        update_preparator = UpdatePreparator()
 
-def stat_query():
-    query_tables = {}
-    with connection.cursor() as cursor:
-        
-        cursor.execute("SELECT * FROM stats_total_listeners_for_each_song")
-        query_tables["Кол-во слушателей на каждую песню: "] = cursor.fetchall()
+        user = database.select(select_preparator.select_password_by_email(form))
 
-        cursor.execute("SELECT * FROM stats_song_with_max_listeners")
-        query_tables["Песни c макс. слушателей: "] = cursor.fetchall()
+        if not user:
+            if form['password'] == form['confirm']:
+                database.insert(insert_preparator.insert_respondent_with_password(form))
+                flash('successfully registered', 'success')
+                return True
+            else:
+                flash('passwords don\'t match','error')    
+                return False
+        elif user[0]['password'] == None:
+            if form['password'] == form['confirm']:
+                database.update(update_preparator.update_password(form))
+                flash('successfully registered', 'success')
+            else:
+                flash('passwords don\'t match', 'error')
+                return False
+            return True
+        else:
+            flash('the user already exists', 'error')
+            return False
+            
 
-        cursor.execute("SELECT * FROM stats_songs_with_min_listeners")
-        query_tables["Песни c мин. слушателей: "] = cursor.fetchall()
+class RoutesFormProcessor:
+    select_preparator = SelectPreparator()
+    insert_preparator = InsertPreparator()
+    playlist_updater = PlaylistsUpdater()
 
-        cursor.execute("SELECT * FROM stats_avg_unique_listeners")
-        query_tables["Среднее кол-во уник. слушателей: "] = cursor.fetchall()
+    def process_guest_form(self,form):
+        survey_results = self.insert_preparator.insert_survey_result(form)
+        database.insert(survey_results)
+        self.playlist_updater.update_playlists(request.form) 
 
-        cursor.execute("SELECT * FROM stats_most_listened_females")
-        query_tables["Наиболее прослушиваемые женщинами: "] = cursor.fetchall()
-
-        cursor.execute("SELECT * FROM stats_most_listened_males")
-        query_tables["Наиболее прослушиваемые мужчинами: "] = cursor.fetchall()
-
-        cursor.execute("SELECT * FROM stats_most_listened_youngsters")
-        query_tables["Наиболее прослушиваемые молодежью: "] = cursor.fetchall()
-
-        cursor.execute("SELECT * FROM stats_song_containing_in_most_playlists")
-        query_tables["Песни, сод. в наиб кол-ве плейлистов: "] = cursor.fetchall()
-
-
-
-        return query_tables
+    def process_registered_user_form(self,form,session):
+        new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
+        new_form.update(form.to_dict())
+        survey_results = self.insert_preparator.insert_survey_result(new_form)
+        if survey_results:
+            database.insert(survey_results)
+            self.playlist_updater.update_playlists(new_form)
+    
+    def process_admin_form(self,form,session):
+        new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
+        new_form.update(form.to_dict())
+        survey_results = self.insert_preparator.insert_survey_result(new_form)
+        if survey_results:
+            database.insert(survey_results)
+            self.playlist_updater.update_playlists(new_form)
+    
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bc83989cdfdd894859fkdlfd83i489ffjdj99'
@@ -278,87 +324,81 @@ app.permanent_session_lifetime = datetime.timedelta(days=1)
 @app.route("/", methods=['GET','POST']) 
 def hub():
     session.permanent = True
+    global database
 
     if session.get('user_data'):
         if (session['user_data']['email'] == 'admin@admin.ru'):
 
-            db_connect('admin','admin')
+            database = Db('admin','admin')
             return redirect('/admin')
         
-        db_connect('registered_user','user')
+        database = Db('registered_user','user')
         
-        print(connection.user)
         return redirect('/registered')
 
     #unregistered
-    db_connect('guest','guest')
+    database = Db('guest','guest')
 
-    songs = select_songs()
-    if request.method == "POST" and request.form != [] and insert_survey_result(request.form):
-        update_playlist(request.form)
+    select_preparator = SelectPreparator()
+    songs = database.select(select_preparator.select_songs())
+
+    routes_processor = RoutesFormProcessor()
+    if request.method == "POST" and request.form != []:
+        routes_processor.process_guest_form(request.form)
 
     return render_template("unregistered_main.html", songs=songs)
 
 @app.route("/registered", methods=['GET','POST'])
 def registered():
-    if connection.user == b'guest':
+    if not session.get('user_data'):
         abort(404)
-        
-    songs = select_songs()
+    
+    select_preparator = SelectPreparator()
+    songs = database.select(select_preparator.select_songs())
+    
+    routes_processor = RoutesFormProcessor()
     if request.method == "POST" and request.form != []:
-        new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
-        new_form.update(request.form.to_dict())
-        if insert_survey_result(new_form):
-            update_playlist(new_form)
+        routes_processor.process_registered_user_form(request.form,session)
         
     return render_template("registered_main.html", songs=songs, email=session['user_data']['email'])
 
 @app.route("/admin", methods=['GET','POST']) 
 def admin():
-    if connection.user != b'admin':
+    if not session.get('user_data') or session['user_data']['email'] != 'admin@admin.ru':
         abort(404)
 
-    songs = select_songs()
+    select_preparator = SelectPreparator()
+    songs = database.select(select_preparator.select_songs())
+
+    routes_processor = RoutesFormProcessor()
     if request.method == "POST" and request.form != []:
-        new_form = {'age':session['user_data']['age'],'sex':session['user_data']['sex'],'email':session['user_data']['email']}
-        new_form.update(request.form.to_dict())
-        if insert_survey_result(new_form):
-            update_playlist(new_form)
+        routes_processor.process_admin_form(request.form,session)
 
     return render_template("admin_main.html", songs=songs, email=session['user_data']['email'])
 
-@app.route("/admin_statistics") 
-def admin_statistics():
-    if connection.user != b'admin':
-        abort(404)
-    for query_name in stat_query().keys():
-           print(query_name)
-        
-    return render_template("admin_statistics.html", stat_queries=stat_query(), email=session['user_data']['email'])
-    
-
-
 @app.route("/registered_playlists")
 def registered_playlists():
-    if connection.user == b'guest':
+    if not session.get('user_data'):
         abort(404)
 
-    
-    playlists = get_ready_playlists()
+    formatter = Formatter()
+    playlists = formatter.format_raw_playlists_as_dict()
     return render_template("registered_playlists.html", playlists=playlists.items(), email=session['user_data']['email'])
 
 @app.route("/admin_playlists")
 def admin_playlists():
-    if connection.user != b'admin':
+    if not session.get('user_data') or session['user_data']['email'] != 'admin@admin.ru':
         abort(404)
 
-    playlists = get_ready_playlists()
+    formatter = Formatter()
+    playlists = formatter.format_raw_playlists_as_dict()
     return render_template("admin_playlists.html", playlists=playlists.items(),email=session['user_data']['email'])
 
 
 @app.route("/login", methods=['GET','POST'])
 def login():
-    if request.method == "POST" and validate_user(request.form, session):
+    user_validator = UserValidator()
+    if request.method == "POST" and user_validator.validate_login(request.form, session):
         return redirect('/')
     
     return render_template("login.html")
@@ -372,7 +412,8 @@ def logout():
 
 @app.route("/register", methods=['GET','POST'])
 def register():
-    if request.method == 'POST' and insert_respondent(request.form):
+    user_validator = UserValidator()
+    if request.method == 'POST' and user_validator.validate_register(request.form):
         session['user_data'] = {'email':request.form['email'], 'sex':request.form['sex'], 'age': request.form['age']}
         return redirect('/')
 
