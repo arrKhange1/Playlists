@@ -1,0 +1,43 @@
+Priviligies for guest:
+
+GRANT SELECT ON author TO guest
+GRANT SELECT ON song TO guest
+GRANT SELECT ON composition TO guest
+GRANT INSERT ON playlist_inner TO guest
+GRANT INSERT ON respondent TO guest
+GRANT SELECT ON respondent TO guest
+GRANT INSERT ON survey_result TO guest
+GRANT SELECT ON get_male_playlist_id TO guest
+GRANT SELECT ON get_female_playlist_id TO guest
+GRANT SELECT ON get_youngsters_playlist_id TO guest
+GRANT SELECT ON songs_for_youngsters_playlist TO guest
+GRANT SELECT ON songs_for_males_playlist TO guest
+GRANT SELECT ON songs_for_females_playlist TO guest
+GRANT DELETE ON playlist_inner TO guest
+GRANT SELECT ON playlist_inner TO guest
+GRANT UPDATE ON respondent TO guest
+
+Priviligies for registered:
+
+GRANT SELECT ON author TO registered_user
+GRANT SELECT ON song TO registered_user
+GRANT SELECT ON composition TO registered_user
+GRANT INSERT ON playlist_inner TO registered_user
+GRANT INSERT ON respondent TO registered_user
+GRANT SELECT ON respondent TO registered_user
+GRANT INSERT ON survey_result TO registered_user
+GRANT SELECT ON get_male_playlist_id TO registered_user
+GRANT SELECT ON get_female_playlist_id TO registered_user
+GRANT SELECT ON get_youngsters_playlist_id TO registered_user
+GRANT SELECT ON songs_for_youngsters_playlist TO registered_user
+GRANT SELECT ON songs_for_males_playlist TO registered_user
+GRANT SELECT ON songs_for_females_playlist TO registered_user
+GRANT DELETE ON playlist_inner TO registered_user
+GRANT SELECT ON playlist_inner TO registered_user
+GRANT UPDATE ON respondent TO registered_user
+GRANT SELECT ON survey_result TO registered_user
+GRANT SELECT ON get_each_playlist TO registered_user
+
+Priviligies for admin:
+
+ALL
