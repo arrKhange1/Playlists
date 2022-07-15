@@ -5,7 +5,7 @@
 Панель с опросом: <br>
 ![image](https://user-images.githubusercontent.com/73338488/179268674-89478305-a7dc-4854-9d3a-118fe37eb57e.png)<br><br>
 Раздел с плейлистами (при наведении раскрываются песни):
-![image](https://user-images.githubusercontent.com/73338488/179268813-14fb0690-c262-481e-a345-891458c4d1d5.png)
+![image](https://user-images.githubusercontent.com/73338488/179273129-d467c038-6bb4-4655-959d-ffdd37390fd9.png)
 
 Из дополнительного функционала можно выделить:
 1. Авторизация пользователей на куки (сессии)
