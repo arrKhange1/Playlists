@@ -22,7 +22,7 @@ Guest is only about running the survey:<br>
 
 Utilized technologies:
 1. Python
-2.Flask framework and the template engine Jinja (Server Side Rendering, MPA)
+2. Flask framework and the template engine Jinja (Server Side Rendering, MPA)
 3. HTML & CSS (SCSS)
 4. MySQL
 5. Database Design (conceptual, logical, physical models)
